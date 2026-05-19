@@ -28,8 +28,10 @@ jobs:
       matrix:
         # os: [ubuntu-22.04, macos-14, windows-2022]
         os: [windows-2022]
-        configuration: [Debug, Release]
-        linkage: [static, dynamic]
+        # configuration: [Debug, Release]
+        configuration: [Release]
+        # linkage: [static, dynamic]
+        linkage: [dynamic]
         # exclude:
         #   - os: windows-2022
         #     linkage: dynamic
