@@ -279,9 +279,11 @@ jobs:
 
           if [ "${{ matrix.configuration }}" = "Release" ]; then
             VCPKG_LIB_DIR="$VCPKG_INSTALLED_DIR/lib"
+            VCPKG_BIN_DIR="$VCPKG_INSTALLED_DIR/bin"
             CONF_DIR="release"
           else
             VCPKG_LIB_DIR="$VCPKG_INSTALLED_DIR/debug/lib"
+            VCPKG_BIN_DIR="$VCPKG_INSTALLED_DIR/debug/bin"
             CONF_DIR="debug"
           fi
 
@@ -311,6 +313,8 @@ jobs:
           find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*protobuf*" -exec mv {} "$TARGET_LIB_DIR/" \;
           if [[ ${{ matrix.linkage }} == "dynamic" && ${{ matrix.os }} == "windows-2022" ]]; then
             find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*abseil_dll*" -exec mv {} "$TARGET_LIB_DIR/" \;
+            find "$VCPKG_BIN_DIR" -maxdepth 1 -name "*protobuf*" -exec mv {} "$TARGET_LIB_DIR/" \;
+            find "$VCPKG_BIN_DIR" -maxdepth 1 -name "*abseil_dll*" -exec mv {} "$TARGET_LIB_DIR/" \;
           fi
 
           # 5. Copy remaining dependencies to deps
