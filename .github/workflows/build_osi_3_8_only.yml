@@ -311,10 +311,15 @@ jobs:
 
           # 4. Move Protobuf and abseil
           find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*protobuf*" -exec mv {} "$TARGET_LIB_DIR/" \;
+
           if [[ ${{ matrix.linkage }} == "dynamic" && ${{ matrix.os }} == "windows-2022" ]]; then
-            find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*t abseil_dll*" -exec mv {} "$TARGET_LIB_DIR/" \;
-            find "$VCPKG_BIN_DIR" -maxdepth 1 -name "*protobuf*" -exec mv {} "$TARGET_LIB_DIR/" \;
-            find "$VCPKG_BIN_DIR" -maxdepth 1 -name "*abseil_dll*" -exec mv {} "$TARGET_LIB_DIR/" \;
+            find "$VCPKG_LIB_DIR" -maxdepth 1 -name "abseil_dll.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
+            find "$VCPKG_BIN_DIR" -maxdepth 1 -name "abseil_dll.lib" -exec mv {} "$TARGET_LIB_DIR/" \;
+            if [[ ${{ matrix.configuration == "Release" }} ]]; then
+              find "$VCPKG_LIB_DIR" -maxdepth 1 -name "libprotobuf.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
+            else
+              find "$VCPKG_LIB_DIR" -maxdepth 1 -name "libprotobufd.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
+            fi
           fi
 
           # 5. Copy remaining dependencies to deps
