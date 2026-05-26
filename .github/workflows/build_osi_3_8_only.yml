@@ -267,9 +267,9 @@ jobs:
           - cache hit: ${{ steps.cache-osi.outputs.cache-hit || 'false' }}
           EOF
 
-      - name: Debugging with tmate
-        if: matrix.os == 'windows-2022'
-        uses: mxschmitt/action-tmate@v3
+      # - name: Debugging with tmate
+      #   if: matrix.os == 'windows-2022'
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Archive Artifacts
         shell: bash
@@ -327,7 +327,7 @@ jobs:
             cp -P "$OSI_SRC_DIR/open_simulation_interface_static.lib" "$TARGET_LIB_DIR/open_simulation_interface_pic.lib" 2>/dev/null || true
 
             # Linux / Mac
-            cp -P "$OSI_SRC_DIR/libopen_simulation_interface_pic.a" "$TARGET_LIB_DIR/" 2>/dev/null || \
+            cp -P "$OSI_SRC_DIR/libopen_simulation_interface_pic.a" "$TARGET_LIB_DIR/" 2>/dev/null || true
 
           else
             # Try all extensions for dynamic linking
