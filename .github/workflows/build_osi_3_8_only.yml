@@ -187,11 +187,6 @@ jobs:
         shell: bash
         run: cmake --build build-osi --config ${{ matrix.configuration }}
 
-      # - name: Install asam-osi-utilities
-      #   if: steps.cache-osi.outputs.cache-hit != 'true'
-      #   shell: bash
-      #   run: cmake --install build-osi-deps --config ${{ matrix.configuration }} --prefix osi-deps
-
       # Saving the cache, essentially mirrors the reestore step but saves instead
       - name: Save OSI build cache
         if: steps.cache-osi.outputs.cache-hit != 'true'
