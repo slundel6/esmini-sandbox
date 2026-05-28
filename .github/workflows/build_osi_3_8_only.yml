@@ -80,10 +80,13 @@ jobs:
             echo "set(VCPKG_LIBRARY_LINKAGE ${{ matrix.linkage }})" >> "$DEST"
             echo "set(VCPKG_PLATFORM_TOOLSET v142)" >> "$DEST"
 
-            # The "Global Override" strategy
-            echo 'set(VCPKG_CXX_FLAGS "/nologo /GL-")' >> "$DEST"
-            echo 'set(VCPKG_C_FLAGS "/nologo /GL-")' >> "$DEST"
+            # The "Global Override" strategy: suppresses linker warnings and disables link-time code generation
+            echo 'set(VCPKG_CXX_FLAGS "/nologo /GL-")' >> "$DEST"  # /nologo: suppress banner, /GL-: disable LTCG
+            echo 'set(VCPKG_C_FLAGS "/nologo /GL-")' >> "$DEST"  # Same flags for C compiler
 
+            # Explicit compiler flags for Debug and Release: optimization, debug symbols, and runtime flags
+            # DEBUG:   /Od=no optimization, /MDd=dynamic MSVCRT+debug, /Z7=debug info in .obj, /Gy=function-level linking
+            # RELEASE: /O2=maximize speed, /MD=dynamic MSVCRT, /DNDEBUG=disable asserts, /Gy=function-level linking, /Gw=optimize global data
             echo 'set(VCPKG_CMAKE_CONFIGURE_OPTIONS "-DCMAKE_CXX_FLAGS_DEBUG=/Od /MDd /Z7 /Gy" "-DCMAKE_CXX_FLAGS_RELEASE=/O2 /MD /DNDEBUG /Gy /Gw" "-DCMAKE_C_FLAGS_DEBUG=/Od /MDd /Z7 /Gy" "-DCMAKE_C_FLAGS_RELEASE=/O2 /MD /DNDEBUG /Gy /Gw")' >> "$DEST"
 
           else # Linux
@@ -290,9 +293,7 @@ jobs:
       - name: Stage Protobuf and Dependencies
         shell: bash
         run: |
-          find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*protobuf*" -exec mv {} "$TARGET_LIB_DIR/" \;
-          find "$VCPKG_LIB_DIR" -maxdepth 1 \( -type f -o -type l \) \( -name "*.lib" -o -name "*.a" \) -exec cp -RP {} "$TARGET_DEPS_LIB_DIR/" \;
-
+          # Windows-specific moves first to prevent duplication in later generic copy
           if [ "$RUNNER_OS" = "Windows" ] && [ "${{ matrix.linkage }}" = "dynamic" ]; then
             find "$VCPKG_BIN_DIR" -maxdepth 1 -name "abseil_dll.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
             find "$VCPKG_LIB_DIR" -maxdepth 1 -name "abseil_dll.lib" -exec mv {} "$TARGET_LIB_DIR/" \;
@@ -302,6 +303,10 @@ jobs:
               find "$VCPKG_BIN_DIR" -maxdepth 1 -name "libprotobufd.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
             fi
           fi
+
+          # Generic move/copy only acts on files still in source directory
+          find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*protobuf*" -exec mv {} "$TARGET_LIB_DIR/" \;
+          find "$VCPKG_LIB_DIR" -maxdepth 1 \( -type f -o -type l \) \( -name "*.lib" -o -name "*.a" \) -exec cp -RP {} "$TARGET_DEPS_LIB_DIR/" \;
 
       - name: Archive Artifacts Windows
         if: runner.os == 'Windows'
