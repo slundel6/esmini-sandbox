@@ -407,16 +407,8 @@ jobs:
       - name: Bundle platform package
         shell: bash
         run: |
-          VERSION_DIR="$OSI_VERSION_CLEAN"
-          if [ -z "$VERSION_DIR" ]; then
-            VERSION_DIR="${OSI_VERSION#v}"
-          fi
-          if [ -z "$VERSION_DIR" ]; then
-            VERSION_DIR="unknown"
-          fi
-
-          PACKAGE_NAME="osi-${VERSION_DIR}-${{ matrix.os }}-${{ github.run_number }}"
-          FINAL_DIR="$PACKAGE_NAME/osi/${VERSION_DIR}/${{ matrix.os }}"
+          PACKAGE_NAME="osi-${{ env.OSI_VERSION_CLEAN }}-${{ matrix.os }}-${{ github.run_number }}"
+          FINAL_DIR="$PACKAGE_NAME/${{ matrix.os }}"
 
           mkdir -p "$FINAL_DIR"
 
