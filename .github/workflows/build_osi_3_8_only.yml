@@ -1,4 +1,4 @@
-name: Build OSI 3.8
+name: Build & release OSI
 
 on:
   push:
@@ -22,6 +22,9 @@ jobs:
   build:
     name: ${{ matrix.os }} ${{ matrix.configuration }} ${{ matrix.linkage }}
     runs-on: ${{ matrix.os }}
+    outputs:
+      osi-version: ${{ steps.versions.outputs.source-version }}
+      osi-version-clean: ${{ steps.versions.outputs.source-version-clean }}
 
     strategy:
       fail-fast: false
@@ -33,15 +36,15 @@ jobs:
           - os: ubuntu-22.04
             triplet: x64-linux
             cmake-generator: -G Ninja
-            artifact-name: osi-3.8-linux
+            artifact-os: linux
           - os: macos-14
             triplet: universal-osx
             cmake-generator: -G Ninja
-            artifact-name: osi-3.8-macos
+            artifact-os: macos
           - os: windows-2022
             triplet: x64-windows-static-md-v142
             cmake-generator: -G "Visual Studio 17 2022" -T v142 -A x64
-            artifact-name: osi-3.8-windows
+            artifact-os: windows
 
     steps:
       - name: Checkout workflow repository
@@ -105,6 +108,19 @@ jobs:
         shell: bash
         run: |
           SOURCE_SHA=$(git -C osi-cpp rev-parse HEAD)
+          # Prefer explicit tag refs, otherwise resolve a tag pointing at the checked out commit.
+          if [[ "${{ env.OSI_REF }}" == v* ]]; then
+            SOURCE_VERSION="${{ env.OSI_REF }}"
+          else
+            SOURCE_VERSION=$(git -C osi-cpp tag --points-at "$SOURCE_SHA" | sort -V | tail -n 1)
+          fi
+
+          if [ -z "$SOURCE_VERSION" ]; then
+            SOURCE_VERSION="sha-${SOURCE_SHA:0:7}"
+          fi
+
+          SOURCE_VERSION_CLEAN="${SOURCE_VERSION#v}"
+
           VCPKG_BASELINE=$(python3 - <<'PY'
           import json
           with open('osi-cpp/vcpkg-configuration.json', encoding='utf-8') as handle:
@@ -113,6 +129,8 @@ jobs:
           )
 
           echo "source-sha=${SOURCE_SHA}" >> "$GITHUB_OUTPUT"
+          echo "source-version=${SOURCE_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "source-version-clean=${SOURCE_VERSION_CLEAN}" >> "$GITHUB_OUTPUT"
           echo "vcpkg-baseline=${VCPKG_BASELINE}" >> "$GITHUB_OUTPUT"
 
       # Restore the cache if new cfg made (manually updated v1->v2 etc.) or asam-osi-utilities hash changed or vcpkg baseline changed (dependencies updated)
@@ -123,7 +141,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/build-osi
-          key: osi-3.8-singlecfg-v3-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}
+          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}
 
       # vcpkg talk directly to github caching servers, using github-script to fetch paths so vcpkg can upload compiled files during cache save.
       # Useful because if cache for one compiled package isn't found it will recompile only the one which isn't found but download the others
@@ -197,7 +215,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/build-osi
-          key: osi-3.8-singlecfg-v3-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}
+          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}
 
       - name: Extract Protobuf Compiler Version
         id: proto-ver
@@ -224,9 +242,10 @@ jobs:
         shell: bash
         run: |
           cat >> "$GITHUB_STEP_SUMMARY" <<EOF
-          ## OSI 3.8 build
+          ## OSI build
 
           - osi commit: ${{ steps.versions.outputs.source-sha }}
+          - osi version: ${{ steps.versions.outputs.source-version }}
           - vcpkg baseline: ${{ steps.versions.outputs.vcpkg-baseline }}
           - runner: ${{ runner.os }}
           - configuration: ${{ matrix.configuration }}
@@ -258,21 +277,22 @@ jobs:
           LIB_DIR_NAME="lib-dyn"
           [ "${{ matrix.linkage }}" = "static" ] && LIB_DIR_NAME="lib"
 
+          ARTIFACT_BASE="osi-${{ steps.versions.outputs.source-version-clean }}-${{ matrix.artifact-os }}"
           TARGET_LIB_DIR="$STAGING_DIR/$LIB_DIR_NAME/$CONF_DIR"
           TARGET_DEPS_LIB_DIR="$STAGING_DIR/deps/$CONF_DIR"
           METADATA_FILE="${{ github.workspace }}/${{ matrix.os }}-${{ matrix.configuration }}-${{ matrix.linkage }}-metadata.txt"
-          ARTIFACT_TAR="${{ matrix.artifact-name }}-${{ matrix.configuration }}-${{ matrix.linkage }}.tar"
+          ARTIFACT_TAR="${ARTIFACT_BASE}-${{ matrix.configuration }}-${{ matrix.linkage }}.tar"
+          ARTIFACT_UPLOAD_NAME="package-${ARTIFACT_BASE}-${{ matrix.configuration }}-${{ matrix.linkage }}"
 
           echo "VCPKG_INSTALLED_DIR=$VCPKG_INSTALLED_DIR" >> "$GITHUB_ENV"
           echo "VCPKG_LIB_DIR=$VCPKG_LIB_DIR" >> "$GITHUB_ENV"
           echo "VCPKG_BIN_DIR=$VCPKG_BIN_DIR" >> "$GITHUB_ENV"
-          echo "CONF_DIR=$CONF_DIR" >> "$GITHUB_ENV"
           echo "STAGING_DIR=$STAGING_DIR" >> "$GITHUB_ENV"
-          echo "LIB_DIR_NAME=$LIB_DIR_NAME" >> "$GITHUB_ENV"
           echo "TARGET_LIB_DIR=$TARGET_LIB_DIR" >> "$GITHUB_ENV"
           echo "TARGET_DEPS_LIB_DIR=$TARGET_DEPS_LIB_DIR" >> "$GITHUB_ENV"
           echo "METADATA_FILE=$METADATA_FILE" >> "$GITHUB_ENV"
           echo "ARTIFACT_TAR=$ARTIFACT_TAR" >> "$GITHUB_ENV"
+          echo "ARTIFACT_UPLOAD_NAME=$ARTIFACT_UPLOAD_NAME" >> "$GITHUB_ENV"
 
       - name: Prepare Artifact Staging
         shell: bash
@@ -357,13 +377,16 @@ jobs:
       - name: Upload OSI artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: package-${{ matrix.artifact-name }}-${{ matrix.configuration }}-${{ matrix.linkage }}
+          name: ${{ env.ARTIFACT_UPLOAD_NAME }}
           path: ${{ env.ARTIFACT_TAR }}
           compression-level: 0
 
   release:
     needs: [build]
     runs-on: ubuntu-latest
+    env:
+      OSI_VERSION: ${{ needs.build.outputs.osi-version }}
+      OSI_VERSION_CLEAN: ${{ needs.build.outputs.osi-version-clean }}
 
     strategy:
       matrix:
@@ -373,25 +396,26 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: package-osi-3.8-${{ matrix.os }}*
+          pattern: package-osi-${{ env.OSI_VERSION_CLEAN }}-${{ matrix.os }}*
           path: staging
 
       - name: Bundle platform package
         shell: bash
         run: |
-          PACKAGE_NAME="osi-3.8-${{ matrix.os }}-${{ github.run_number }}"
-
-          if [ ${{ matrix.os }} = "linux" ]; then
-            FINAL_DIR="$PACKAGE_NAME/linux"
-          elif [ ${{ matrix.os }} = "windows" ]; then
-            FINAL_DIR="$PACKAGE_NAME/v10"
-          else
-            FINAL_DIR="$PACKAGE_NAME/mac"
+          VERSION_DIR="$OSI_VERSION_CLEAN"
+          if [ -z "$VERSION_DIR" ]; then
+            VERSION_DIR="${OSI_VERSION#v}"
           fi
+          if [ -z "$VERSION_DIR" ]; then
+            VERSION_DIR="unknown"
+          fi
+
+          PACKAGE_NAME="osi-${VERSION_DIR}-${{ matrix.os }}-${{ github.run_number }}"
+          FINAL_DIR="$PACKAGE_NAME/osi/${VERSION_DIR}/${{ matrix.os }}"
 
           mkdir -p "$FINAL_DIR"
 
-          for tarfile in staging/package-osi-3.8-${{ matrix.os }}*/*.tar; do
+          for tarfile in staging/package-osi-${{ env.OSI_VERSION_CLEAN }}-${{ matrix.os }}*/*.tar; do
             tar -xvf "$tarfile" -C "$FINAL_DIR"
           done
           tar -cJvf "${PACKAGE_NAME}.tar.xz" -C "${PACKAGE_NAME}" .
@@ -399,7 +423,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "osi-3.8-${{ github.run_number }}"
-          name: osi-3.8-b${{ github.run_number }}
-          body: 'osi build containing debug, release, static and dynamic files per platform'
+          tag_name: "osi-${{ env.OSI_VERSION_CLEAN }}-${{ github.run_number }}"
+          name: osi-${{ env.OSI_VERSION_CLEAN }}-b${{ github.run_number }}
+          body: 'osi build for version ${{ env.OSI_VERSION }} containing debug, release, static and dynamic files per platform'
           files: "*.tar.xz"
