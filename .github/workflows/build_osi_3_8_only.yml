@@ -428,6 +428,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "osi-${{ env.OSI_VERSION_CLEAN }}-${{ env.BUILD_NR }}"
-          name: osi-${{ env.OSI_VERSION_CLEAN }}-b${{ env.BUILD_NR }}
+          name: osi-${{ env.OSI_VERSION_CLEAN }}-${{ env.BUILD_NR }}
           body: 'osi build for version ${{ env.OSI_VERSION }} containing debug, release, static and dynamic files per platform'
           files: "*.tar.xz"
