@@ -414,20 +414,20 @@ jobs:
             windows) FOLDER_NAME="v10" ;;
           esac
 
-          PACKAGE_NAME="osi-${{ env.OSI_VERSION_CLEAN }}-${{ matrix.os }}-${{ env.BUILD_NR }}"
-          FINAL_DIR="$PACKAGE_NAME/$FOLDER_NAME"
+          ARCHIVE_NAME="osi-${{ matrix.os }}"
+          FINAL_DIR="$ARCHIVE_NAME/$FOLDER_NAME"
 
           mkdir -p "$FINAL_DIR"
 
           for tarfile in staging/package-osi-${{ env.OSI_VERSION_CLEAN }}-${{ matrix.os }}*/*.tar; do
             tar -xvf "$tarfile" -C "$FINAL_DIR"
           done
-          tar -cJvf "${PACKAGE_NAME}.tar.xz" -C "${PACKAGE_NAME}" .
+          tar -cJvf "${ARCHIVE_NAME}.tar.xz" -C "${ARCHIVE_NAME}" .
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "osi-${{ env.OSI_VERSION_CLEAN }}-${{ env.BUILD_NR }}"
-          name: osi-${{ env.OSI_VERSION_CLEAN }}-${{ env.BUILD_NR }}
+          tag_name: "v${{ env.OSI_VERSION_CLEAN }}_${{ env.BUILD_NR }}"
+          name: v${{ env.OSI_VERSION_CLEAN }}_${{ env.BUILD_NR }}
           body: 'osi build for version ${{ env.OSI_VERSION }} containing debug, release, static and dynamic files per platform'
           files: "*.tar.xz"
