@@ -414,7 +414,7 @@ jobs:
             windows) FOLDER_NAME="v10" ;;
           esac
 
-          PACKAGE_NAME="osi-${{ env.OSI_VERSION_CLEAN }}-${{ matrix.os }}-${{ env.RUN_NUMBER }}"
+          PACKAGE_NAME="osi-${{ env.OSI_VERSION_CLEAN }}-${{ matrix.os }}-${{ env.BUILD_NR }}"
           FINAL_DIR="$PACKAGE_NAME/$FOLDER_NAME"
 
           mkdir -p "$FINAL_DIR"
@@ -427,7 +427,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "osi-${{ env.OSI_VERSION_CLEAN }}-${{ env.RUN_NUMBER }}"
-          name: osi-${{ env.OSI_VERSION_CLEAN }}-b${{ env.RUN_NUMBER }}
+          tag_name: "osi-${{ env.OSI_VERSION_CLEAN }}-${{ env.BUILD_NR }}"
+          name: osi-${{ env.OSI_VERSION_CLEAN }}-b${{ env.BUILD_NR }}
           body: 'osi build for version ${{ env.OSI_VERSION }} containing debug, release, static and dynamic files per platform'
           files: "*.tar.xz"
