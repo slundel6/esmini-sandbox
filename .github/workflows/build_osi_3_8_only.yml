@@ -14,6 +14,7 @@ permissions:
   contents: write
 
 env:
+  BUILD_NR: 1
   CMAKE_BUILD_PARALLEL_LEVEL: 2
   OSI_REPOSITORY: OpenSimulationInterface/osi-cpp
   OSI_REF: 82add6cd443ea1e1dd81b3023ba756b74913c43b
@@ -413,7 +414,7 @@ jobs:
             windows) FOLDER_NAME="v10" ;;
           esac
 
-          PACKAGE_NAME="osi-${{ env.OSI_VERSION_CLEAN }}-${{ matrix.os }}-${{ github.run_number }}"
+          PACKAGE_NAME="osi-${{ env.OSI_VERSION_CLEAN }}-${{ matrix.os }}-${{ env.RUN_NUMBER }}"
           FINAL_DIR="$PACKAGE_NAME/$FOLDER_NAME"
 
           mkdir -p "$FINAL_DIR"
@@ -426,7 +427,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "osi-${{ env.OSI_VERSION_CLEAN }}-${{ github.run_number }}"
-          name: osi-${{ env.OSI_VERSION_CLEAN }}-b${{ github.run_number }}
+          tag_name: "osi-${{ env.OSI_VERSION_CLEAN }}-${{ env.RUN_NUMBER }}"
+          name: osi-${{ env.OSI_VERSION_CLEAN }}-b${{ env.RUN_NUMBER }}
           body: 'osi build for version ${{ env.OSI_VERSION }} containing debug, release, static and dynamic files per platform'
           files: "*.tar.xz"
