@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 env:
-  BUILD_NR: 1
+  BUILD_NR: 2
   CMAKE_BUILD_PARALLEL_LEVEL: 2
   OSI_REPOSITORY: OpenSimulationInterface/osi-cpp
   OSI_REF: 82add6cd443ea1e1dd81b3023ba756b74913c43b
@@ -147,7 +147,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/build-osi
-          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}
+          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}-${{ env.BUILD_NR }}
 
       # vcpkg talk directly to github caching servers, using github-script to fetch paths so vcpkg can upload compiled files during cache save.
       # Useful because if cache for one compiled package isn't found it will recompile only the one which isn't found but download the others
@@ -221,7 +221,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/build-osi
-          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}
+          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}-${{ BUILD_NR }}
 
       - name: Extract Protobuf Compiler Version
         id: proto-ver
