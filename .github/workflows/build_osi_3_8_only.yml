@@ -221,7 +221,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/build-osi
-          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}-${{ BUILD_NR }}
+          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}-${{ env.BUILD_NR }}
 
       - name: Extract Protobuf Compiler Version
         id: proto-ver
