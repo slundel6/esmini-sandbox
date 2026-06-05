@@ -38,7 +38,7 @@ else
     PARALLEL_ARG="-j $PARALLEL_BUILDS"
 fi
 
-if [ "$OSTYPE" == "msys" ]; then
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
     # Visual Studio 2022 using toolkit from Visual Studio 2017
     GENERATOR=("Visual Studio 17 2022")
     GENERATOR_TOOLSET="v142"
@@ -59,7 +59,7 @@ else
     echo Unknown OSTYPE: $OSTYPE
 fi
 
-if [ "$OSTYPE" == "msys" ]; then
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
     target_dir="v10"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     target_dir="linux"
@@ -156,20 +156,20 @@ function build {
         if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
             ZLIB_FILE_RELEASE=libz.a
             ZLIB_FILE_DEBUG=libzd.a
-        elif [ "$OSTYPE" == "msys" ]; then
+        elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
             ZLIB_FILE_RELEASE=zlib.lib
             ZLIB_FILE_DEBUG=zlibd.lib
         fi
 
         if [ $DYNAMIC_LINKING == "1" ]; then
-            if [ "$OSTYPE" == "msys" ]; then
+            if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
                 ADDITIONAL_CMAKE_PARAMETERS="-Dprotobuf_BUILD_SHARED_LIBS=ON -DCMAKE_CXX_FLAGS=-DPROTOBUF_USE_DLLS"
             else
                 ADDITIONAL_CMAKE_PARAMETERS="-Dprotobuf_BUILD_SHARED_LIBS=ON -DCMAKE_CXX_FLAGS=-DPROTOBUF_USE_DLLS -DCMAKE_CXX_FLAGS=-fPIC"
             fi
         else
             BUILD_SHARED_LIBS="OFF"
-            if [ "$OSTYPE" == "msys" ]; then
+            if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
                 ADDITIONAL_CMAKE_PARAMETERS="-Dprotobuf_BUILD_SHARED_LIBS=OFF"
             else
                 ADDITIONAL_CMAKE_PARAMETERS="-Dprotobuf_BUILD_SHARED_LIBS=OFF -DCMAKE_CXX_FLAGS=-fPIC"
@@ -206,7 +206,7 @@ function build {
         INSTALL_ROOT_DIR=../install
         INSTALL_INCLUDE_DIR=$INSTALL_ROOT_DIR/include
         export PATH=$PATH:../../graphviz/release/bin:../../protobuf$folder_postfix/protobuf-install/bin
-        if [ "$OSTYPE" == "msys" ]; then
+        if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
             PROTOC_EXE="../../protobuf_$1/protobuf-install/bin/protoc.exe"
         else
             PROTOC_EXE="../../protobuf_$1/protobuf-install/bin/protoc"
@@ -264,7 +264,7 @@ function build {
 
         if [ $DYNAMIC_LINKING == "1" ]; then
 
-            if [ "$OSTYPE" == "msys" ]; then
+            if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
                 cp open-simulation-interface$folder_postfix/install/$variant/lib/osi3/open_simulation_interface.dll $target_lib_dir
                 cp open-simulation-interface$folder_postfix/install/$variant/lib/osi3/open_simulation_interface_pic.lib $target_lib_dir
                 if [ $variant == "debug" ]; then
@@ -290,7 +290,7 @@ function build {
                 fi
             fi
         else
-            if [ "$OSTYPE" == "msys" ]; then
+            if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
                 cp open-simulation-interface$folder_postfix/install/$variant/lib/osi3/*open_simulation_interface_pic.lib $target_lib_dir
                 if [ $variant == "debug" ]; then
                     cp protobuf$folder_postfix/protobuf-install/lib/libprotobufd.lib $target_lib_dir
