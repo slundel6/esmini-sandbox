@@ -1,0 +1,59 @@
+name: Build & release OSI
+
+on:
+  push:
+    branches:
+      - only_build_osi_3_5
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  BUILD_NR: 1
+  OSI_VERSION: 3.5.0
+  OSI_VERSION_CLEAN: 3.5.0
+
+jobs:
+  build:
+    name: ${{ matrix.os }} ${{ matrix.configuration }} ${{ matrix.linkage }}
+    runs-on: ${{ matrix.os }}
+    outputs:
+      osi-version: ${{ steps.versions.outputs.source-version }}
+      osi-version-clean: ${{ steps.versions.outputs.source-version-clean }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-14, windows-2022]
+
+    steps:
+      - name: Checkout workflow repository
+        uses: actions/checkout@v6
+
+      - name: Build OSI
+        shell: bash
+        run: ${{ matrix.os == 'ubuntu-22.04' && 'xvfb-run' || '' }} ./generate_osi_libs.sh
+
+      - name: Bundle platform package
+        shell: bash
+        run: |
+          case "${{ matrix.os }}" in
+            ubuntu-22.04) ARCHIVE_NAME="osi-linux.tar.xz" ; FOLDER_NAME="linux" ;;
+            macos-14)    ARCHIVE_NAME="osi-macos.tar.xz" ; FOLDER_NAME="mac" ;;
+            windows-2022) ARCHIVE_NAME="osi-window.tar.xz" ; FOLDER_NAME="v10" ;;
+          esac
+
+          tar -cJvf "$ARCHIVE_NAME" "$FOLDER_NAME"
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ env.OSI_VERSION_CLEAN }}_${{ env.BUILD_NR }}"
+          name: v${{ env.OSI_VERSION_CLEAN }}_${{ env.BUILD_NR }}
+          body: 'osi build for version ${{ env.OSI_VERSION }} containing debug, release, static and dynamic files per platform'
+          files: "*.tar.xz"
