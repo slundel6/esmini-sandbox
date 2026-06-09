@@ -243,7 +243,6 @@ function build {
 
     cd $osi_root_dir
 
-    cp open-simulation-interface$folder_postfix/VERSION $target_dir
     cp open-simulation-interface$folder_postfix/install/release/include/osi3/* $target_dir/include
     cp -r protobuf$folder_postfix/protobuf-install/include/google $target_dir/include
 

@@ -45,7 +45,7 @@ jobs:
           case "${{ matrix.os }}" in
             ubuntu-22.04) ARCHIVE_NAME="osi-linux.tar.xz" ; FOLDER_NAME="linux" ;;
             macos-14)    ARCHIVE_NAME="osi-macos.tar.xz" ; FOLDER_NAME="mac" ;;
-            windows-2022) ARCHIVE_NAME="osi-window.tar.xz" ; FOLDER_NAME="v10" ;;
+            windows-2022) ARCHIVE_NAME="osi-windows.tar.xz" ; FOLDER_NAME="v10" ;;
           esac
 
           tar -cJvf "$ARCHIVE_NAME" "$FOLDER_NAME"
