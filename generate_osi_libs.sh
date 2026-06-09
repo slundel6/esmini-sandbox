@@ -97,7 +97,7 @@ if [ ! -d zlib ]; then
 
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         cmake -G "${GENERATOR[@]}" ${GENERATOR_ARGUMENTS} -D CMAKE_INSTALL_PREFIX=../install -DCMAKE_BUILD_TYPE=Debug .. -DCMAKE_C_FLAGS="-fPIC" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-        cmake --build .  $PARALLEL_ARG --target install
+        cmake --build . $PARALLEL_ARG --target install
         mv ../install/lib/libz.a ../install/lib/libzd.a
 
         rm CMakeCache.txt
@@ -222,7 +222,7 @@ function build {
         mkdir $INSTALL_ROOT_DIR/debug
         mkdir $INSTALL_ROOT_DIR/release
 
-        COMMON_ARGS=".. -D CMAKE_INCLUDE_PATH=../protobuf$folder_postfix/protobuf-install/include -D PROTOBUF_SRC_ROOT_FOLDER=../../protobuf_$1/ -D Protobuf_PROTOC_EXECUTABLE=$PROTOC_EXE -D CMAKE_VERBOSE_MAKEFILE=ON -D CMAKE_LIBRARY_PATH=../protobuf$folder_postfix/protobuf-install/lib -D CMAKE_CXX_STANDARD=11"
+        COMMON_ARGS=".. -D CMAKE_INCLUDE_PATH=../protobuf$folder_postfix/protobuf-install/include -D PROTOBUF_SRC_ROOT_FOLDER=../../protobuf_$1/ -D Protobuf_PROTOC_EXECUTABLE=$PROTOC_EXE -D CMAKE_VERBOSE_MAKEFILE=ON -D CMAKE_LIBRARY_PATH=../protobuf$folder_postfix/protobuf-install/lib -D CMAKE_CXX_STANDARD=17"
 
         if [[ "$OSTYPE" != "darwin"* ]]; then
             # Build debug variant first

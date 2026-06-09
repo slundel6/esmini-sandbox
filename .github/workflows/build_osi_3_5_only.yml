@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 env:
-  BUILD_NR: 1
+  BUILD_NR: 2
   OSI_VERSION: 3.5.0
   OSI_VERSION_CLEAN: 3.5.0
 
@@ -34,6 +34,8 @@ jobs:
     steps:
       - name: Checkout workflow repository
         uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup_tools_shared
 
       - name: Build OSI
         shell: bash
