@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 env:
-  BUILD_NR: 2
+  BUILD_NR: 3
   CMAKE_BUILD_PARALLEL_LEVEL: 2
   OSI_REPOSITORY: OpenSimulationInterface/osi-cpp
   OSI_REF: 82add6cd443ea1e1dd81b3023ba756b74913c43b
@@ -50,6 +50,8 @@ jobs:
     steps:
       - name: Checkout workflow repository
         uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup_tools_shared
 
       - name: Checkout osi-cpp
         uses: actions/checkout@v6
