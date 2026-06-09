@@ -51,6 +51,8 @@ jobs:
       - name: Checkout workflow repository
         uses: actions/checkout@v6
 
+      - uses: ./.github/actions/setup_tools_shared
+
       - name: Checkout osi-cpp
         uses: actions/checkout@v6
         with:
