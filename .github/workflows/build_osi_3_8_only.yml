@@ -1,4 +1,4 @@
-name: Build & release OSI
+name: Build & release OSI 3.8
 
 on:
   push:
