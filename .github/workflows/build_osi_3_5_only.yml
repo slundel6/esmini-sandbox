@@ -3,7 +3,7 @@ name: Build & release OSI 3.5
 on:
   push:
     branches:
-      - main
+      - only_build_osi_3_5
     tags:
       - v[0-9]+.[0-9]+.[0-9]+*
   workflow_dispatch:
@@ -15,9 +15,6 @@ jobs:
   build:
     name: ${{ matrix.os }} ${{ matrix.configuration }} ${{ matrix.linkage }}
     runs-on: ${{ matrix.os }}
-    outputs:
-      osi-version: ${{ steps.versions.outputs.source-version }}
-      osi-version-clean: ${{ steps.versions.outputs.source-version-clean }}
 
     strategy:
       fail-fast: false

@@ -3,19 +3,15 @@ name: Build & release OSI 3.8
 on:
   push:
     branches:
-      - only_build_osi_3_8
-  pull_request:
-    branches:
       - main
-      - master
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+*
   workflow_dispatch:
 
 permissions:
   contents: write
 
 env:
-  BUILD_NR: 3
-  CMAKE_BUILD_PARALLEL_LEVEL: 2
   OSI_REPOSITORY: OpenSimulationInterface/osi-cpp
   OSI_REF: 82add6cd443ea1e1dd81b3023ba756b74913c43b
 
@@ -149,7 +145,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/build-osi
-          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}-${{ env.BUILD_NR }}
+          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}
 
       # vcpkg talk directly to github caching servers, using github-script to fetch paths so vcpkg can upload compiled files during cache save.
       # Useful because if cache for one compiled package isn't found it will recompile only the one which isn't found but download the others
@@ -223,7 +219,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/build-osi
-          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}-${{ env.BUILD_NR }}
+          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}
 
       - name: Extract Protobuf Compiler Version
         id: proto-ver
@@ -392,6 +388,7 @@ jobs:
   release:
     needs: [build]
     runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
     env:
       OSI_VERSION: ${{ needs.build.outputs.osi-version }}
       OSI_VERSION_CLEAN: ${{ needs.build.outputs.osi-version-clean }}
@@ -429,7 +426,6 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v${{ env.OSI_VERSION_CLEAN }}_${{ env.BUILD_NR }}"
-          name: v${{ env.OSI_VERSION_CLEAN }}_${{ env.BUILD_NR }}
+          name: "v${{ env.OSI_VERSION_CLEAN }}"
           body: 'osi build for version ${{ env.OSI_VERSION }} containing debug, release, static and dynamic files per platform'
           files: "*.tar.xz"
