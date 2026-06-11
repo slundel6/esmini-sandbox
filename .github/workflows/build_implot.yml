@@ -29,10 +29,6 @@ jobs:
         shell: bash
         run: ${{ matrix.os == 'ubuntu-22.04' && 'xvfb-run' || '' }} ./generate_implot_libs.sh
 
-      - name: Debugging with tmate
-        if: ${{ matrix.os }} == windows-2022
-        uses: mxschmitt/action-tmate@v3
-
       - name: Bundle platform package
         shell: bash
         run: |

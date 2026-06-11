@@ -35,7 +35,7 @@ else
     PARALLEL_ARG="-j $PARALLEL_BUILDS"
 fi
 
-if [ "$OSTYPE" == "msys" ]; then
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
     # Visual Studio 2022 - toolkit from Visual Studio 2017
     GENERATOR=("Visual Studio 17 2022")
     GENERATOR_TOOLSET="v142"
@@ -99,7 +99,7 @@ echo ------------------------ compile glfw --------------------------------
 cd $implot_root_dir
 mkdir glfw/build;cd glfw/build
 
-if [ "$OSTYPE" == "msys" ]; then
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
 
     cmake .. -G "${GENERATOR[@]}" ${GENERATOR_ARGUMENTS}
     cmake --build . $PARALLEL_ARG --config Release
@@ -127,7 +127,7 @@ echo ------------------------ compile implot ------------------------------
 cd $implot_root_dir
 mkdir build;cd build
 
-if [ "$OSTYPE" == "msys" ]; then
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
 
 	cmake .. -G "Visual Studio 17 2022" -T v143 -A x64
 	cmake --build . -j $PARALLEL_ARG --config Release
@@ -182,7 +182,7 @@ then
 
     echo Copying libs
 
-	if [ "$OSTYPE" == "msys" ]; then
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
 
 		cp glfw/build/src/Release/glfw3.lib $target_dir/lib
 		cp glfw/build/src/Debug/glfw3.lib $target_dir/lib/glfw3d.lib
