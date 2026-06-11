@@ -25,14 +25,10 @@ jobs:
 
       - uses: ./.github/actions/setup_tools_shared
 
-      - name: Install further dependencies
+      - name: Install further implot dependencies
         shell: bash
         if: ${{ matrix.os == 'ubuntu-22.04' }}
-        run: sudo apt-get install -q -y libxrandr-dev
-
-      - name: Debugging with tmate
-        if: ${{ matrix.os == 'ubuntu-22.04' }}
-        uses: mxschmitt/action-tmate@v3
+        run: sudo apt-get install -q -y libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev
 
       - name: Build Implot
         shell: bash
