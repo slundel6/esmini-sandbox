@@ -3,7 +3,7 @@ name: Build & release implot
 on:
   push:
     tags:
-      - implot-v[0-9]+.[0-9]+.[0-9]+*
+      - implot-v[0-9]+.[0-9]+*
   workflow_dispatch:
 
 permissions:
