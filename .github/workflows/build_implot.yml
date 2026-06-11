@@ -25,9 +25,13 @@ jobs:
 
       - uses: ./.github/actions/setup_tools_shared
 
-      - name: Build OSI
+      - name: Build Implot
         shell: bash
         run: ${{ matrix.os == 'ubuntu-22.04' && 'xvfb-run' || '' }} ./generate_implot_libs.sh
+
+      - name: Debugging with tmate
+        if: ${{ matrix.os }} == windows-2022
+        uses: mxschmitt/action-tmate@v3
 
       - name: Bundle platform package
         shell: bash
