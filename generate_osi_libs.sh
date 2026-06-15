@@ -205,7 +205,15 @@ function build {
 
         INSTALL_ROOT_DIR=../install
         INSTALL_INCLUDE_DIR=$INSTALL_ROOT_DIR/include
-        export PATH=$PATH:../../graphviz/release/bin:../../protobuf$folder_postfix/protobuf-install/bin
+        PROTOBUF_BIN_ABS=$(cd "../../protobuf$folder_postfix/protobuf-install/bin" && pwd)
+
+        # Convert it to a native Windows path (e.g., D:/a/... or C:/...) so MSBuild can read it
+        if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
+            PROTOBUF_BIN_ABS=$(cygpath -w "$PROTOBUF_BIN_ABS")
+        fi
+
+        export PATH="$PATH:$PROTOBUF_BIN_ABS:../../graphviz/release/bin"
+
         if [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
             PROTOC_EXE="../../protobuf_$1/protobuf-install/bin/protoc.exe"
         else
