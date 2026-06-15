@@ -157,13 +157,8 @@ function build {
             ZLIB_FILE_RELEASE=libz.a
             ZLIB_FILE_DEBUG=libzd.a
         elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
-            ZLIB_FILE_RELEASE=zlib.lib
-            ZLIB_FILE_DEBUG=zlibd.lib
-
-            # Needed so libprotobuf.dll can find it, thus enabling protoc.ex    e to use libprotobuf.dll
-            ZLIB_BIN_PATH="../../zlib/install/bin"
-            export PATH="$ZLIB_BIN_PATH:$PATH"
-
+            ZLIB_FILE_RELEASE=zlibstatic.lib
+            ZLIB_FILE_DEBUG=zlibstaticd.lib
         fi
 
         if [ $DYNAMIC_LINKING == "1" ]; then
