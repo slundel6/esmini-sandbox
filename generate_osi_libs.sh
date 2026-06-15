@@ -107,7 +107,7 @@ if [ ! -d zlib ]; then
         cmake -G "${GENERATOR[@]}" ${GENERATOR_ARGUMENTS} -D CMAKE_INSTALL_PREFIX=../install -DCMAKE_BUILD_TYPE=Release .. -DCMAKE_C_FLAGS="-fPIC" -DCMAKE_OSX_ARCHITECTURES="$macos_arch" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         cmake --build . $PARALLEL_ARG --target install
     else
-        cmake -G "${GENERATOR[@]}" ${GENERATOR_ARGUMENTS} -D CMAKE_INSTALL_PREFIX=../install ..
+        cmake -G "${GENERATOR[@]}" ${GENERATOR_ARGUMENTS} -D CMAKE_INSTALL_PREFIX=../install .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         cmake --build . $PARALLEL_ARG --config Debug --target install
         cmake --build . $PARALLEL_ARG --config Release --target install --clean-first
     fi
@@ -159,6 +159,11 @@ function build {
         elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == cygwin* ]]; then
             ZLIB_FILE_RELEASE=zlib.lib
             ZLIB_FILE_DEBUG=zlibd.lib
+
+            # Needed so libprotobuf.dll can find it, thus enabling protoc.ex    e to use libprotobuf.dll
+            ZLIB_BIN_PATH="../../zlib/install/bin"
+            export PATH="$ZLIB_BIN_PATH:$PATH"
+
         fi
 
         if [ $DYNAMIC_LINKING == "1" ]; then
