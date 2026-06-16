@@ -143,7 +143,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/build-osi
-          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}
+          key: osi-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.vcpkg-baseline }}
 
       # vcpkg talk directly to github caching servers, using github-script to fetch paths so vcpkg can upload compiled files during cache save.
       # Useful because if cache for one compiled package isn't found it will recompile only the one which isn't found but download the others
@@ -217,7 +217,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/build-osi
-          key: osi-${{ steps.versions.outputs.source-version-clean }}-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.source-sha }}-${{ steps.versions.outputs.vcpkg-baseline }}
+          key: osi-singlecfg-${{ runner.os }}-${{ matrix.triplet }}-${{ matrix.configuration }}-${{ matrix.linkage }}-${{ steps.versions.outputs.vcpkg-baseline }}
 
       - name: Extract Protobuf Compiler Version
         id: proto-ver
