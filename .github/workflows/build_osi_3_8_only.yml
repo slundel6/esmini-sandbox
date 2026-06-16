@@ -3,21 +3,20 @@ name: Build & release OSI 3.8
 on:
   push:
     tags:
-      - osi-v[0-9]+.[0-9]+.[0-9]+*
+      - osi-v3.8.[0-9]*
   workflow_dispatch:
 
 permissions:
   contents: write
 
 env:
-  OSI_REPOSITORY: OpenSimulationInterface/osi-cpp
-  OSI_REF: 82add6cd443ea1e1dd81b3023ba756b74913c43b
+  OSI_REPOSITORY: slundel6/osi-cpp
+  OSI_REF: 3e62b39b198c902d221dc14868396ef8d5faa3e9
 
 jobs:
   build:
     name: ${{ matrix.os }} ${{ matrix.configuration }} ${{ matrix.linkage }}
     runs-on: ${{ matrix.os }}
-    if: false
     outputs:
       osi-version: ${{ steps.versions.outputs.source-version }}
       osi-version-clean: ${{ steps.versions.outputs.source-version-clean }}
