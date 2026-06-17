@@ -322,10 +322,12 @@ jobs:
               find "$VCPKG_LIB_DIR" -maxdepth 1 -name "abseil_dll.lib" -exec mv {} "$TARGET_LIB_DIR/" \;
               if [ "${{ matrix.configuration }}" = "Release" ]; then
                 find "$VCPKG_BIN_DIR" -maxdepth 1 -name "libprotobuf.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
+                find "$VCPKG_LIB_DIR" -maxdepth 1 -name "libprotobuf.lib" -exec mv {} "$TARGET_LIB_DIR/" \;
                 find "$VCPKG_BIN_DIR" -maxdepth 1 -name "zlib1.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
                 find "$VCPKG_LIB_DIR" -maxdepth 1 -name "zlib.lib" -exec mv {} "$TARGET_LIB_DIR/" \;
               else
                 find "$VCPKG_BIN_DIR" -maxdepth 1 -name "libprotobufd.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
+                find "$VCPKG_LIB_DIR" -maxdepth 1 -name "libprotobufd.lib" -exec mv {} "$TARGET_LIB_DIR/" \;
                 find "$VCPKG_BIN_DIR" -maxdepth 1 -name "zlibd1.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
                 find "$VCPKG_LIB_DIR" -maxdepth 1 -name "zlibd.lib" -exec mv {} "$TARGET_LIB_DIR/" \;
               fi
@@ -344,7 +346,6 @@ jobs:
           # Only move protobuf for static builds (dynamic already handled above)
           if [ "${{ matrix.linkage }}" = "static" ]; then
             find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*protobuf*" -exec mv {} "$TARGET_LIB_DIR/" \;
-            find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*libz*" -exec mv {} "$TARGET_LIB_DIR/" \;
           fi
 
           # Copy remaining static libraries to deps folder (only for dynamic builds, or all for static)
