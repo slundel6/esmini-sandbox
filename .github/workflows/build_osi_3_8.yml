@@ -15,8 +15,8 @@ permissions:
 
 env:
   CMAKE_BUILD_PARALLEL_LEVEL: 2
-  OSI_UTILITIES_REPOSITORY: lichtblick-suite/asam-osi-utilities
-  OSI_UTILITIES_REF: b7c8603b96ba763dfc5d1ce3ab3eead78a905aa6
+  OSI_UTILITIES_REPOSITORY: slundel6/asam-osi-utilities
+  OSI_UTILITIES_REF: c89fd98b150f5db8b2b68b614e017089d1a1af17
 
 jobs:
   build:
