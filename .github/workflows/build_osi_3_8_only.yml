@@ -316,114 +316,121 @@ jobs:
         run: |
           # Windows-specific moves first to prevent duplication in later generic copy
           if [ "$RUNNER_OS" = "Windows" ] && [ "${{ matrix.linkage }}" = "dynamic" ]; then
+            # Move abseil
             find "$VCPKG_BIN_DIR" -maxdepth 1 -name "abseil_dll.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
             find "$VCPKG_LIB_DIR" -maxdepth 1 -name "abseil_dll.lib" -exec mv {} "$TARGET_LIB_DIR/" \;
             if [ "${{ matrix.configuration }}" = "Release" ]; then
               find "$VCPKG_BIN_DIR" -maxdepth 1 -name "libprotobuf.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
+              # Move zlib
+              find "$VCPKG_BIN_DIR" -maxdepth 1 -name "zlib1.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
+              find "$VCPKG_LIB_DIR" -maxdepth 1 -name "zlib.lib" -exec mv {} "$TARGET_LIB_DIR/" \;
             else
               find "$VCPKG_BIN_DIR" -maxdepth 1 -name "libprotobufd.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
+              find "$VCPKG_BIN_DIR" -maxdepth 1 -name "zlibd1.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
+              find "$VCPKG_LIB_DIR" -maxdepth 1 -name "zlibd.lib" -exec mv {} "$TARGET_LIB_DIR/" \;
             fi
           fi
 
           # Generic move/copy only acts on files still in source directory
           find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*protobuf*" -exec mv {} "$TARGET_LIB_DIR/" \;
+          find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*libz*" -exec mv {} "$TARGET_LIB_DIR/" \;
           find "$VCPKG_LIB_DIR" -maxdepth 1 \( -type f -o -type l \) \( -name "*.lib" -o -name "*.a" \) -exec cp -RP {} "$TARGET_DEPS_LIB_DIR/" \;
 
-      # - name: Archive Artifacts Windows
-      #   if: runner.os == 'Windows'
-      #   shell: bash
-      #   run: |
-      #     OSI_SRC_DIR="${{ github.workspace }}/build-osi/${{ matrix.configuration }}"
+      - name: Archive Artifacts Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          OSI_SRC_DIR="${{ github.workspace }}/build-osi/${{ matrix.configuration }}"
 
-      #     if [ "${{ matrix.linkage }}" = "static" ]; then
-      #       cp -P "$OSI_SRC_DIR/open_simulation_interface_static.lib" "$TARGET_LIB_DIR/open_simulation_interface_pic.lib" 2>/dev/null || true
-      #     else
-      #       cp -P "$OSI_SRC_DIR/open_simulation_interface.dll" "$TARGET_LIB_DIR/" 2>/dev/null || true
-      #       cp -P "$OSI_SRC_DIR/open_simulation_interface_pic.lib" "$TARGET_LIB_DIR/" 2>/dev/null || true
-      #     fi
+          if [ "${{ matrix.linkage }}" = "static" ]; then
+            cp -P "$OSI_SRC_DIR/open_simulation_interface_static.lib" "$TARGET_LIB_DIR/open_simulation_interface_pic.lib" 2>/dev/null || true
+          else
+            cp -P "$OSI_SRC_DIR/open_simulation_interface.dll" "$TARGET_LIB_DIR/" 2>/dev/null || true
+            cp -P "$OSI_SRC_DIR/open_simulation_interface_pic.lib" "$TARGET_LIB_DIR/" 2>/dev/null || true
+          fi
 
-      # - name: Archive Artifacts Linux
-      #   if: runner.os == 'Linux'
-      #   shell: bash
-      #   run: |
-      #     OSI_SRC_DIR="${{ github.workspace }}/build-osi"
+      - name: Archive Artifacts Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          OSI_SRC_DIR="${{ github.workspace }}/build-osi"
 
-      #     if [ "${{ matrix.linkage }}" = "static" ]; then
-      #       cp -P "$OSI_SRC_DIR/libopen_simulation_interface_pic.a" "$TARGET_LIB_DIR/" 2>/dev/null || true
-      #     else
-      #       cp -RP "$OSI_SRC_DIR/libopen_simulation_interface.so"* "$TARGET_LIB_DIR/" 2>/dev/null || true
-      #     fi
+          if [ "${{ matrix.linkage }}" = "static" ]; then
+            cp -P "$OSI_SRC_DIR/libopen_simulation_interface_pic.a" "$TARGET_LIB_DIR/" 2>/dev/null || true
+          else
+            cp -RP "$OSI_SRC_DIR/libopen_simulation_interface.so"* "$TARGET_LIB_DIR/" 2>/dev/null || true
+          fi
 
-      # - name: Archive Artifacts macOS
-      #   if: runner.os == 'macOS'
-      #   shell: bash
-      #   run: |
-      #     OSI_SRC_DIR="${{ github.workspace }}/build-osi"
+      - name: Archive Artifacts macOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          OSI_SRC_DIR="${{ github.workspace }}/build-osi"
 
-      #     if [ "${{ matrix.linkage }}" = "static" ]; then
-      #       cp -P "$OSI_SRC_DIR/libopen_simulation_interface_pic.a" "$TARGET_LIB_DIR/" 2>/dev/null || true
-      #     else
-      #       cp -RP "$OSI_SRC_DIR/libopen_simulation_interface"*.dylib* "$TARGET_LIB_DIR/" 2>/dev/null || true
-      #     fi
+          if [ "${{ matrix.linkage }}" = "static" ]; then
+            cp -P "$OSI_SRC_DIR/libopen_simulation_interface_pic.a" "$TARGET_LIB_DIR/" 2>/dev/null || true
+          else
+            cp -RP "$OSI_SRC_DIR/libopen_simulation_interface"*.dylib* "$TARGET_LIB_DIR/" 2>/dev/null || true
+          fi
 
-      # - name: Finalize Artifact Package
-      #   shell: bash
-      #   run: |
-      #     [ -f "$METADATA_FILE" ] && cp "$METADATA_FILE" "$STAGING_DIR/"
-      #     find "$STAGING_DIR" -name "*protobuf-lite*" -delete
-      #     find "$STAGING_DIR" -name "libprotoc*" -delete
+      - name: Finalize Artifact Package
+        shell: bash
+        run: |
+          [ -f "$METADATA_FILE" ] && cp "$METADATA_FILE" "$STAGING_DIR/"
+          find "$STAGING_DIR" -name "*protobuf-lite*" -delete
+          find "$STAGING_DIR" -name "libprotoc*" -delete
 
-      #     tar -cvzf "$ARTIFACT_TAR" -C "$STAGING_DIR" .
+          tar -cvzf "$ARTIFACT_TAR" -C "$STAGING_DIR" .
 
-      # - name: Upload OSI artifacts
-      #   uses: actions/upload-artifact@v7
-      #   with:
-      #     name: ${{ env.ARTIFACT_UPLOAD_NAME }}
-      #     path: ${{ env.ARTIFACT_TAR }}
-      #     compression-level: 0
+      - name: Upload OSI artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ARTIFACT_UPLOAD_NAME }}
+          path: ${{ env.ARTIFACT_TAR }}
+          compression-level: 0
 
-  # release:
-  #   needs: [build]
-  #   runs-on: ubuntu-latest
-  #   if: github.ref_type == 'tag'
-  #   env:
-  #     OSI_VERSION: ${{ needs.build.outputs.osi-version }}
-  #     OSI_VERSION_CLEAN: ${{ needs.build.outputs.osi-version-clean }}
+  release:
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    env:
+      OSI_VERSION: ${{ needs.build.outputs.osi-version }}
+      OSI_VERSION_CLEAN: ${{ needs.build.outputs.osi-version-clean }}
 
-  #   steps:
-  #     - name: Download all artifacts
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         pattern: package-osi-${{ env.OSI_VERSION_CLEAN }}-*
-  #         path: staging
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: package-osi-${{ env.OSI_VERSION_CLEAN }}-*
+          path: staging
 
-  #     - name: Bundle platform packages
-  #       shell: bash
-  #       run: |
-  #         for os in linux macos windows; do
-  #           case "$os" in
-  #             linux)   FOLDER_NAME="linux" ;;
-  #             macos)   FOLDER_NAME="mac" ;;
-  #             windows) FOLDER_NAME="v10" ;;
-  #           esac
+      - name: Bundle platform packages
+        shell: bash
+        run: |
+          for os in linux macos windows; do
+            case "$os" in
+              linux)   FOLDER_NAME="linux" ;;
+              macos)   FOLDER_NAME="mac" ;;
+              windows) FOLDER_NAME="v10" ;;
+            esac
 
-  #           ARCHIVE_NAME="osi-$os"
-  #           FINAL_DIR="$ARCHIVE_NAME/$FOLDER_NAME"
+            ARCHIVE_NAME="osi-$os"
+            FINAL_DIR="$ARCHIVE_NAME/$FOLDER_NAME"
 
-  #           mkdir -p "$FINAL_DIR"
+            mkdir -p "$FINAL_DIR"
 
-  #           for tarfile in staging/package-osi-${{ env.OSI_VERSION_CLEAN }}-$os*/*.tar; do
-  #             tar -xvf "$tarfile" -C "$FINAL_DIR"
-  #           done
+            for tarfile in staging/package-osi-${{ env.OSI_VERSION_CLEAN }}-$os*/*.tar; do
+              tar -xvf "$tarfile" -C "$FINAL_DIR"
+            done
 
-  #           tar -cJvf "${ARCHIVE_NAME}.tar.xz" -C "${ARCHIVE_NAME}" .
-  #         done
+            tar -cJvf "${ARCHIVE_NAME}.tar.xz" -C "${ARCHIVE_NAME}" .
+          done
 
-  #     - name: Release
-  #       uses: softprops/action-gh-release@v2
-  #       with:
-  #         tag_name: ${{ github.ref_name }}
-  #         name: ${{ github.ref_name }}
-  #         body: 'osi build for version ${{ env.OSI_VERSION }} containing debug, release, static and dynamic files per platform'
-  #         files: "osi-*.tar.xz"
-  #         token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: 'osi build for version ${{ env.OSI_VERSION }} containing debug, release, static and dynamic files per platform'
+          files: "osi-*.tar.xz"
+          token: ${{ secrets.GITHUB_TOKEN }}
