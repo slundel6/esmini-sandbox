@@ -333,12 +333,12 @@ jobs:
               fi
             elif [ "$RUNNER_OS" = "Linux" ]; then
               # Move dynamic libraries only (not static .a files)
-              find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*protobuf.so*" -exec mv {} "$TARGET_LIB_DIR/" \;
+              find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*protobuf*.so*" -exec mv {} "$TARGET_LIB_DIR/" \;
               find "$VCPKG_LIB_DIR" -maxdepth 1 -name "libz.so*" -exec mv {} "$TARGET_LIB_DIR/" \;
             elif [ "$RUNNER_OS" = "macOS" ]; then
               # Move dynamic libraries only (not static .a files)
-              find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*protobuf.dylib*" -exec mv {} "$TARGET_LIB_DIR/" \;
-              find "$VCPKG_LIB_DIR" -maxdepth 1 -name "libz.dylib*" -exec mv {} "$TARGET_LIB_DIR/" \;
+              find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*protobuf*.dylib*" -exec mv {} "$TARGET_LIB_DIR/" \;
+              find "$VCPKG_LIB_DIR" -maxdepth 1 -name "libz*.dylib*" -exec mv {} "$TARGET_LIB_DIR/" \;
             fi
           fi
 
