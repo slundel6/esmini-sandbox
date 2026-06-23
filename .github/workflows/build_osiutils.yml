@@ -1,9 +1,9 @@
 name: Build OSI 3.8 & its dependencies
 
 on:
-  push:
-    branches:
-      - build_osiutils
+  # push:
+  #   branches:
+  #     - build_osiutils
   pull_request:
     branches:
       - main
@@ -230,15 +230,25 @@ jobs:
         shell: bash
         run: |
           OSI_UTILS_INSTALLED_DIR="${{ github.workspace}}/osi-deps"
+          OSI_UTILS_LIB_DIR="$OSI_UTILS_INSTALLED_DIR/lib"
+          OSI_UTILS_INCL_DIR="$OSI_UTILS_INSTALLED_DIR/bin"
 
-          VCPKG_LIB_DIR="$OSI_UTILS_INSTALLED_DIR/lib"
-          VCPKG_INCL_DIR="$OSI_UTILS_INSTALLED_DIR/bin"
+          VCPKG_INSTALLED_DIR="build-osi-deps/vcpkg_installed/${{ matrix.triplet }}-${{ matrix.linkage }}"
+          if [ "${{ matrix.configuration }}" = "Release" ]; then
+            VCPKG_LIB_DIR="$VCPKG_INSTALLED_DIR/lib"
+            CONF_DIR="release"
+          else
+            VCPKG_LIB_DIR="$VCPKG_INSTALLED_DIR/debug/lib"
+            CONF_DIR="debug"
+          fi
+          VCPKG_INCL_DIR="$VCPKG_INSTALLED_DIR/include"
 
-          STAGING_DIR="osi-package"
+          STAGING_DIR="osi-utils-package"
           LIB_DIR_NAME="lib-dyn"
           [ "${{ matrix.linkage }}" = "static" ] && LIB_DIR_NAME="lib"
 
           ARTIFACT_BASE="osi-${{ steps.versions.outputs.source-version-clean }}-${{ matrix.artifact-os }}"
+          TARGET_LIB_DIR="$STAGING_DIR/$LIB_DIR_NAME/$CONF_DIR"
           TARGET_DEPS_LIB_DIR="$STAGING_DIR/deps/$CONF_DIR"
           ARTIFACT_TAR="${ARTIFACT_BASE}-${{ matrix.configuration }}-${{ matrix.linkage }}.tar"
           ARTIFACT_UPLOAD_NAME="package-${ARTIFACT_BASE}-${{ matrix.configuration }}-${{ matrix.linkage }}"
@@ -246,46 +256,37 @@ jobs:
           echo "VCPKG_INSTALLED_DIR=$VCPKG_INSTALLED_DIR" >> "$GITHUB_ENV"
           echo "VCPKG_LIB_DIR=$VCPKG_LIB_DIR" >> "$GITHUB_ENV"
           echo "VCPKG_BIN_DIR=$VCPKG_BIN_DIR" >> "$GITHUB_ENV"
+          echo "OSI_UTILS_LIB_DIR=$OSI_UTILS_LIB_DIR" >> "$GITHUB_ENV"
+          echo "OSI_UTILS_INCL_DIR=$OSI_UTILS_INCL_DIR" >> "$GITHUB_ENV"
           echo "STAGING_DIR=$STAGING_DIR" >> "$GITHUB_ENV"
           echo "TARGET_LIB_DIR=$TARGET_LIB_DIR" >> "$GITHUB_ENV"
           echo "TARGET_DEPS_LIB_DIR=$TARGET_DEPS_LIB_DIR" >> "$GITHUB_ENV"
-          echo "METADATA_FILE=$METADATA_FILE" >> "$GITHUB_ENV"
           echo "ARTIFACT_TAR=$ARTIFACT_TAR" >> "$GITHUB_ENV"
           echo "ARTIFACT_UPLOAD_NAME=$ARTIFACT_UPLOAD_NAME" >> "$GITHUB_ENV"
 
-  #     - name: Prepare Artifact Staging
-  #       shell: bash
-  #       run: |
-  #         rm -rf "$STAGING_DIR"
-  #         mkdir -p "$STAGING_DIR/include"
-  #         mkdir -p "$TARGET_LIB_DIR"
-  #         mkdir -p "$TARGET_DEPS_LIB_DIR"
+      - name: Prepare Artifact Staging
+        shell: bash
+        run: |
+          rm -rf "$STAGING_DIR"
+          mkdir -p "$STAGING_DIR/include"
+          mkdir -p "$TARGET_LIB_DIR"
+          mkdir -p "$TARGET_DEPS_LIB_DIR"
 
-  #         if [ -d "${{ github.workspace }}/build-osi/include/osi3" ]; then
-  #           cp -R "${{ github.workspace }}/build-osi/include/osi3/." "$STAGING_DIR/include/"
-  #         fi
+          if [ -d "$OSI_UTILS_INCL_DIR" ]; then
+            cp -r "$OSI_UTILS_INCL_DIR"/osi-utilities "$STAGING_DIR/include/"
+            cp -r "$OSI_UTILS_INCL_DIR"/mcap "$STAGING_DIR/include/"
+          fi
 
-  #         if [ -d "$VCPKG_INSTALLED_DIR/include" ]; then
-  #           cp -R "$VCPKG_INSTALLED_DIR/include/." "$STAGING_DIR/include/"
-  #         fi
+          if [ -d "$VCPKG_INSTALLED_DIR/include" ]; then
+            cp -R "$VCPKG_INSTALLED_DIR/include/lz4*.h" "$VCPKG_INSTALLED_DIR/include/zdict.h" "$VCPKG_INSTALLED_DIR/include/zstd*.h" "$STAGING_DIR/include/"
+          fi
 
-  #     - name: Stage Protobuf and Dependencies
-  #       shell: bash
-  #       run: |
-  #         # Windows-specific moves first to prevent duplication in later generic copy
-  #         if [ "$RUNNER_OS" = "Windows" ] && [ "${{ matrix.linkage }}" = "dynamic" ]; then
-  #           find "$VCPKG_BIN_DIR" -maxdepth 1 -name "abseil_dll.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
-  #           find "$VCPKG_LIB_DIR" -maxdepth 1 -name "abseil_dll.lib" -exec mv {} "$TARGET_LIB_DIR/" \;
-  #           if [ "${{ matrix.configuration }}" = "Release" ]; then
-  #             find "$VCPKG_BIN_DIR" -maxdepth 1 -name "libprotobuf.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
-  #           else
-  #             find "$VCPKG_BIN_DIR" -maxdepth 1 -name "libprotobufd.dll" -exec mv {} "$TARGET_LIB_DIR/" \;
-  #           fi
-  #         fi
-
-  #         # Generic move/copy only acts on files still in source directory
-  #         find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*protobuf*" -exec mv {} "$TARGET_LIB_DIR/" \;
-  #         find "$VCPKG_LIB_DIR" -maxdepth 1 \( -type f -o -type l \) \( -name "*.lib" -o -name "*.a" \) -exec cp -RP {} "$TARGET_DEPS_LIB_DIR/" \;
+      - name: Stage dependency libs
+        shell: bash
+        run: |
+          # Generic move/copy only acts on files still in source directory
+          find "$VCPKG_LIB_DIR" -maxdepth 1 -name "*lz4*" -exec mv {} "$TARGET_DEPS_LIB_DIR/" \;
+          find "$VCPKG_LIB_DIR" -maxdepth 1 -name "**zstd*" -exec mv {} "$TARGET_DEPS_LIB_DIR/" \;
 
   #     - name: Archive Artifacts Windows
   #       if: runner.os == 'Windows'
@@ -300,17 +301,15 @@ jobs:
   #           cp -P "$OSI_SRC_DIR/open_simulation_interface_pic.lib" "$TARGET_LIB_DIR/" 2>/dev/null || true
   #         fi
 
-  #     - name: Archive Artifacts Linux
-  #       if: runner.os == 'Linux'
-  #       shell: bash
-  #       run: |
-  #         OSI_SRC_DIR="${{ github.workspace }}/build-osi"
-
-  #         if [ "${{ matrix.linkage }}" = "static" ]; then
-  #           cp -P "$OSI_SRC_DIR/libopen_simulation_interface_pic.a" "$TARGET_LIB_DIR/" 2>/dev/null || true
-  #         else
-  #           cp -RP "$OSI_SRC_DIR/libopen_simulation_interface.so"* "$TARGET_LIB_DIR/" 2>/dev/null || true
-  #         fi
+      - name: Archive Artifacts Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          if [ "${{ matrix.linkage }}" = "static" ]; then
+            cp -P "$OSI_UTILS_LIB_DIR/libOSIUtilities.a" "$TARGET_LIB_DIR/" 2>/dev/null || true
+          else
+            cp -RP "$OSI_SRC_DIR/libopen_simulation_interface.so"* "$TARGET_LIB_DIR/" 2>/dev/null || true
+          fi
 
   #     - name: Archive Artifacts macOS
   #       if: runner.os == 'macOS'
